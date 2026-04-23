@@ -569,6 +569,25 @@ document.addEventListener("DOMContentLoaded", () => {
         `
         }
       </div>
+      <div class="share-bar">
+        <span class="share-label">Share:</span>
+        <button class="share-btn share-copy tooltip" data-activity="${name}" aria-label="Copy link">
+          📋
+          <span class="tooltip-text">Copy link</span>
+        </button>
+        <a class="share-btn share-twitter tooltip" href="#" target="_blank" rel="noopener noreferrer" aria-label="Share on X (Twitter)">
+          𝕏
+          <span class="tooltip-text">Share on X</span>
+        </a>
+        <a class="share-btn share-whatsapp tooltip" href="#" target="_blank" rel="noopener noreferrer" aria-label="Share on WhatsApp">
+          💬
+          <span class="tooltip-text">Share on WhatsApp</span>
+        </a>
+        <a class="share-btn share-email tooltip" href="#" aria-label="Share via Email">
+          ✉
+          <span class="tooltip-text">Share via Email</span>
+        </a>
+      </div>
     `;
 
     // Add click handlers for delete buttons
@@ -587,7 +606,53 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    // Wire up social share buttons
+    wireShareButtons(activityCard, name, details, formattedSchedule);
+
     activitiesList.appendChild(activityCard);
+  }
+
+  // Wire up social share buttons on an activity card
+  function wireShareButtons(card, name, details, formattedSchedule) {
+    const shareText = `Check out "${name}" at Mergington High School! ${details.description} Schedule: ${formattedSchedule}`;
+    const shareUrl = `${window.location.origin}${window.location.pathname}?activity=${encodeURIComponent(name)}`;
+
+    // Copy link button
+    const copyBtn = card.querySelector(".share-copy");
+    copyBtn.addEventListener("click", () => {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+          showMessage("Link copied to clipboard!", "success");
+        }).catch(() => {
+          showMessage("Failed to copy link.", "error");
+        });
+      } else {
+        // Fallback for older browsers
+        const textarea = document.createElement("textarea");
+        textarea.value = shareUrl;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+        showMessage("Link copied to clipboard!", "success");
+      }
+    });
+
+    // Twitter / X share link
+    const twitterBtn = card.querySelector(".share-twitter");
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+    twitterBtn.href = twitterUrl;
+
+    // WhatsApp share link
+    const whatsappBtn = card.querySelector(".share-whatsapp");
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`;
+    whatsappBtn.href = whatsappUrl;
+
+    // Email share link
+    const emailBtn = card.querySelector(".share-email");
+    const emailSubject = `Join me for "${name}" at Mergington High School!`;
+    const emailBody = `${shareText}\n\nLearn more: ${shareUrl}`;
+    emailBtn.href = `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
   }
 
   // Event listeners for search and filter
